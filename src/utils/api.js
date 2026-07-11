@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_URL = 'http://127.0.0.1:8000/api';
+// ===== ប្តូរទៅប្រើ Render URL ថ្មី =====
+const API_URL = 'https://e-commerce-backend-online-product.onrender.com/api';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -9,6 +10,7 @@ const api = axios.create({
   },
 });
 
+// Request interceptor - add token to requests
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -22,13 +24,15 @@ api.interceptors.request.use(
   }
 );
 
+// Response interceptor - handle errors
 api.interceptors.response.use(
   (response) => response.data,
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      // ប្តូរទៅប្រើ Absolute URL នៃ Vercel
+      window.location.href = 'https://e-commerce-user-online-product.vercel.app/login';
     }
     return Promise.reject(error.response?.data || error.message);
   }
