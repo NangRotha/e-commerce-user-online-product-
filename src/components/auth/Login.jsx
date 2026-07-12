@@ -1,12 +1,12 @@
+// src/components/auth/Login.jsx
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
-import { jwtDecode } from 'jwt-decode';
 import { motion } from 'framer-motion';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import toast from 'react-hot-toast';
-import api from '../../utils/api'; // <--- នាំចូល api សម្រាប់ផ្ញើ Request
+import api from '../../utils/api';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -38,28 +38,37 @@ const Login = () => {
   // ===== Google Login Success =====
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
+      console.log("Google credential received:", credentialResponse.credential);
+      
       // 1. ផ្ញើ Google Token ទៅ Backend
       const response = await api.post('/auth/google/callback', {
         token: credentialResponse.credential
       });
+      console.log("Backend response:", response);
       
       // 2. ទទួល JWT Token ពី Backend
-      const { access_token } = response;
+      const { access_token, user_id, role } = response;
       localStorage.setItem('token', access_token);
       
       // 3. ទាញយកព័ត៌មានអ្នកប្រើប្រាស់
       const userData = await api.get('/auth/me');
       localStorage.setItem('user', JSON.stringify(userData));
       
+      // 4. ធ្វើបច្ចុប្បន្នភាព Auth Context
+      // ព្រោះ AuthContext នឹងអានពី localStorage ដោយស្វ័យប្រវត្តិ
+      window.location.reload(); // ឬប្រើ Context ដើម្បី update state
+      
       toast.success('Google Login ជោគជ័យ!');
       navigate('/');
     } catch (error) {
       console.error('Google Login Error:', error);
-      toast.error('Google Login បរាជ័យ');
+      const errorMessage = error?.detail || error?.message || 'Google Login បរាជ័យ';
+      toast.error(errorMessage);
     }
   };
 
   const handleGoogleError = () => {
+    console.error('Google Login Failed');
     toast.error('Google Login បរាជ័យ');
   };
 
@@ -91,6 +100,7 @@ const Login = () => {
             </p>
           </div>
 
+          {/* ===== Email/Password Login Form ===== */}
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-4">
               <div>
@@ -177,6 +187,10 @@ const Login = () => {
                 onSuccess={handleGoogleSuccess}
                 onError={handleGoogleError}
                 useOneTap
+                theme="outline"
+                size="large"
+                text="continue_with"
+                shape="rectangular"
               />
             </div>
           </div>
