@@ -13,7 +13,7 @@ const api = axios.create({
 // Request interceptor - add token to requests
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('admin_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -29,10 +29,10 @@ api.interceptors.response.use(
   (response) => response.data,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      localStorage.removeItem('admin_token');
+      localStorage.removeItem('admin_user');
       // ប្តូរទៅប្រើ Absolute URL នៃ Vercel
-      window.location.href = 'https://e-commerce-user-online-product.vercel.app/login';
+      window.location.href = 'https://e-commerce-admin-online-product.vercel.app/admin/login';
     }
     return Promise.reject(error.response?.data || error.message);
   }
