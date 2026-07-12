@@ -22,10 +22,13 @@ export const AuthProvider = ({ children }) => {
         const parsedUser = JSON.parse(savedUser);
         setUser(parsedUser);
         setIsAuthenticated(true);
+        console.log('✅ User authenticated:', parsedUser.username);
       } catch (e) {
         console.error('Error parsing user data:', e);
         localStorage.removeItem('user');
       }
+    } else {
+      console.log('ℹ️ No token found, user not authenticated');
     }
     setLoading(false);
   }, []);
@@ -54,7 +57,7 @@ export const AuthProvider = ({ children }) => {
       toast.success('ចូលប្រើប្រាស់បានជោគជ័យ!');
       return { success: true };
     } catch (error) {
-      const errorMessage = error?.detail || error?.message || 'ចូលប្រើប្រាស់មិនបានជោគជ័យ';
+      const errorMessage = error || 'ចូលប្រើប្រាស់មិនបានជោគជ័យ';
       toast.error(errorMessage);
       return { success: false, error: errorMessage };
     }
@@ -67,7 +70,7 @@ export const AuthProvider = ({ children }) => {
       toast.success('ចុះឈ្មោះបានជោគជ័យ! សូមចូលប្រើប្រាស់។');
       return { success: true };
     } catch (error) {
-      const errorMessage = error?.detail || error?.message || 'ចុះឈ្មោះមិនបានជោគជ័យ';
+      const errorMessage = error || 'ចុះឈ្មោះមិនបានជោគជ័យ';
       toast.error(errorMessage);
       return { success: false, error: errorMessage };
     }

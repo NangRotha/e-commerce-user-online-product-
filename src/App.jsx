@@ -13,7 +13,7 @@ import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import Profile from './pages/Profile';
 import Orders from './pages/Orders';
-import OrderSuccess from './pages/OrderSuccess'; // <--- បន្ថែមនេះ
+import OrderSuccess from './pages/OrderSuccess';
 import About from './pages/About';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
@@ -33,7 +33,7 @@ function App() {
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/orders" element={<Orders />} />
-                <Route path="/order-success/:id" element={<OrderSuccess />} /> {/* <--- បន្ថែម Route នេះ */}
+                <Route path="/order-success/:id" element={<OrderSuccess />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />

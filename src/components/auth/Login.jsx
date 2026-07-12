@@ -15,7 +15,7 @@ const Login = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -38,32 +38,31 @@ const Login = () => {
   // ===== Google Login Success =====
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      console.log("Google credential received:", credentialResponse.credential);
+      console.log("Google credential received");
       
-      // 1. ផ្ញើ Google Token ទៅ Backend
+      // ផ្ញើ Google Token ទៅ Backend
       const response = await api.post('/auth/google/callback', {
         token: credentialResponse.credential
       });
+      
       console.log("Backend response:", response);
       
-      // 2. ទទួល JWT Token ពី Backend
-      const { access_token, user_id, role } = response;
+      // ទទួល JWT Token ពី Backend
+      const { access_token } = response;
       localStorage.setItem('token', access_token);
       
-      // 3. ទាញយកព័ត៌មានអ្នកប្រើប្រាស់
+      // ទាញយកព័ត៌មានអ្នកប្រើប្រាស់
       const userData = await api.get('/auth/me');
       localStorage.setItem('user', JSON.stringify(userData));
       
-      // 4. ធ្វើបច្ចុប្បន្នភាព Auth Context
-      // ព្រោះ AuthContext នឹងអានពី localStorage ដោយស្វ័យប្រវត្តិ
-      window.location.reload(); // ឬប្រើ Context ដើម្បី update state
-      
       toast.success('Google Login ជោគជ័យ!');
-      navigate('/');
+      
+      // ផ្ទុកព័ត៌មានអ្នកប្រើប្រាស់ឡើងវិញ
+      window.location.reload();
+      
     } catch (error) {
       console.error('Google Login Error:', error);
-      const errorMessage = error?.detail || error?.message || 'Google Login បរាជ័យ';
-      toast.error(errorMessage);
+      toast.error(error || 'Google Login បរាជ័យ');
     }
   };
 
@@ -72,7 +71,12 @@ const Login = () => {
     toast.error('Google Login បរាជ័យ');
   };
 
-  const GOOGLE_CLIENT_ID = '562344656843-d0fa2a9uspefv69n84rqm6kbh1tr0990.apps.googleusercontent.com';
+  // Google Client ID ពី Environment Variable
+  const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+
+  if (!GOOGLE_CLIENT_ID) {
+    console.warn('⚠️ VITE_GOOGLE_CLIENT_ID not set in environment');
+  }
 
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
@@ -183,15 +187,21 @@ const Login = () => {
             </div>
 
             <div className="mt-6 flex justify-center">
-              <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={handleGoogleError}
-                useOneTap
-                theme="outline"
-                size="large"
-                text="continue_with"
-                shape="rectangular"
-              />
+              {GOOGLE_CLIENT_ID ? (
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleError}
+                  useOneTap
+                  theme="outline"
+                  size="large"
+                  text="continue_with"
+                  shape="rectangular"
+                />
+              ) : (
+                <div className="text-red-500 text-sm">
+                  ⚠️ មិនទាន់កំណត់ Google Client ID
+                </div>
+              )}
             </div>
           </div>
         </motion.div>

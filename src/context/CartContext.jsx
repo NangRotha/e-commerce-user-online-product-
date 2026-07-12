@@ -1,7 +1,8 @@
+// src/context/CartContext.jsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
-import { useAuth } from './AuthContext'; // នាំចូល AuthContext ដើម្បីពិនិត្យ Authenticated
+import { useAuth } from './AuthContext';
 
 const CartContext = createContext();
 
@@ -13,69 +14,98 @@ export const CartProvider = ({ children }) => {
   const [totalItems, setTotalItems] = useState(0);
   const [totalPrice, setTotalPrice] = useState(0);
   
-  // ទាញយក isAuthenticated ពី AuthContext
+  // ទាញយកស្ថានភាព Authenticated ពី AuthContext
   const { isAuthenticated } = useAuth();
 
+  // ===== ផ្ទុក Cart ពី Backend =====
   const loadCart = async () => {
-    // ប្រសិនបើមិនទាន់ Authenticated សូមកុំហៅ API ហើយកុំឱ្យ Loading
+    // ប្រសិនបើមិនទាន់ Authenticated កុំហៅ API
     if (!isAuthenticated) {
+      console.log('🛒 Not authenticated, skipping cart load');
+      setCartItems([]);
+      setTotalItems(0);
+      setTotalPrice(0);
       setLoading(false);
       return;
     }
 
     try {
       setLoading(true);
+      console.log('🛒 Loading cart...');
       const data = await api.get('/cart/');
       setCartItems(data || []);
+      console.log('✅ Cart loaded:', data);
     } catch (error) {
-      // ទប់ស្កាត់ Error 401 កុំឱ្យបង្ហាញនៅលើ Console
+      // ប្រសិនបើ Error 401 មិនបាច់បង្ហាញ
       if (error?.status !== 401) {
-        console.error('Error loading cart:', error);
+        console.error('❌ Error loading cart:', error);
+        toast.error('មិនអាចផ្ទុកកន្ត្រកបានទេ');
       }
     } finally {
       setLoading(false);
     }
   };
 
-  // ពឹងផ្អែកលើ isAuthenticated - ពេល Authenticated ផ្លាស់ប្តូរ វានឹងហៅ loadCart()
+  // ===== ផ្ទុក Cart ពេល Authenticated ផ្លាស់ប្តូរ =====
   useEffect(() => {
-    loadCart();
+    if (isAuthenticated) {
+      loadCart();
+    } else {
+      // ប្រសិនបើ Logout សម្អាត Cart
+      setCartItems([]);
+      setTotalItems(0);
+      setTotalPrice(0);
+    }
   }, [isAuthenticated]);
 
+  // ===== គណនាសរុប =====
   useEffect(() => {
     const items = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-    const price = cartItems.reduce((sum, item) => sum + (item.product.discounted_price || item.product.price) * item.quantity, 0);
+    const price = cartItems.reduce((sum, item) => {
+      const unitPrice = item.product.discounted_price || item.product.price;
+      return sum + (unitPrice * item.quantity);
+    }, 0);
     setTotalItems(items);
     setTotalPrice(price);
   }, [cartItems]);
 
+  // ===== បន្ថែមទៅកន្ត្រក =====
   const addToCart = async (productId, quantity = 1) => {
     if (!isAuthenticated) {
-      toast.error('សូមចូលប្រើប្រាស់ជាមុនដើម្បីបន្ថែមទំនិញទៅកន្ត្រក');
+      toast.error('សូមចូលប្រើប្រាស់ជាមុនសិន');
       return;
     }
     try {
-      const response = await api.post('/cart/', { product_id: productId, quantity });
+      console.log('🛒 Adding to cart:', { productId, quantity });
+      const response = await api.post('/cart/', { 
+        product_id: productId, 
+        quantity: quantity 
+      });
       toast.success('បានបន្ថែមទៅកន្ត្រក!');
-      loadCart();
+      loadCart(); // ផ្ទុក Cart ឡើងវិញ
       return response;
     } catch (error) {
-      toast.error('បរាជ័យក្នុងការបន្ថែមទៅកន្ត្រក');
+      console.error('❌ Error adding to cart:', error);
+      toast.error('មិនអាចបន្ថែមទៅកន្ត្រកបានទេ');
       throw error;
     }
   };
 
+  // ===== លុបពីកន្ត្រក =====
   const removeFromCart = async (cartItemId) => {
     try {
+      console.log('🛒 Removing from cart:', cartItemId);
       await api.delete(`/cart/${cartItemId}`);
       toast.success('បានលុបចេញពីកន្ត្រក');
       loadCart();
     } catch (error) {
-      toast.error('បរាជ័យក្នុងការលុបចេញពីកន្ត្រក');
+      console.error('❌ Error removing from cart:', error);
+      toast.error('មិនអាចលុបចេញពីកន្ត្រកបានទេ');
       throw error;
     }
   };
 
+  // ===== សម្អាតកន្ត្រក =====
   const clearCart = () => {
     setCartItems([]);
     setTotalItems(0);
