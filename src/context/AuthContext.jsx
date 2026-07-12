@@ -48,12 +48,18 @@ export const AuthProvider = ({ children }) => {
       const { access_token } = response;
       localStorage.setItem('token', access_token);
       
-      // ទាញយកព័ត៌មានអ្នកប្រើប្រាស់
-      const userData = await api.get('/auth/me');
-      localStorage.setItem('user', JSON.stringify(userData));
+      // ទាញយកព័ត៌មានអ្នកប្រើប្រាស់ (កែតម្រូវ៖ ប្រើ try/catch)
+      try {
+        const userData = await api.get('/auth/me');
+        localStorage.setItem('user', JSON.stringify(userData));
+        setUser(userData);
+        setIsAuthenticated(true);
+      } catch (userError) {
+        console.warn('⚠️ Could not fetch user data, but login successful:', userError);
+        setUser(null);
+        setIsAuthenticated(true);
+      }
       
-      setUser(userData);
-      setIsAuthenticated(true);
       toast.success('ចូលប្រើប្រាស់បានជោគជ័យ!');
       return { success: true };
     } catch (error) {

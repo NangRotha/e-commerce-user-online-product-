@@ -1,3 +1,4 @@
+// src/context/SettingsContext.jsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../utils/api';
 
@@ -20,8 +21,8 @@ export const SettingsProvider = ({ children }) => {
 
   const fetchSettings = async () => {
     try {
-      // ប្រើ API Public ដែលមិនត្រូវការ Token (កែតម្រូវនៅទីនេះ!)
-      const data = await api.get('/admin/settings/public');
+      // ===== កែតម្រូវនៅទីនេះ! លុប '/public' ចេញ =====
+      const data = await api.get('/admin/settings');
       setSettings(data);
     } catch (error) {
       console.error('Error fetching settings:', error);

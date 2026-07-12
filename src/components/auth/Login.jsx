@@ -15,7 +15,7 @@ const Login = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { login, loginWithGoogle } = useAuth();
+  const { login } = useAuth(); // លុប loginWithGoogle ចេញ ព្រោះមិនបានប្រើ
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -51,9 +51,14 @@ const Login = () => {
       const { access_token } = response;
       localStorage.setItem('token', access_token);
       
-      // ទាញយកព័ត៌មានអ្នកប្រើប្រាស់
-      const userData = await api.get('/auth/me');
-      localStorage.setItem('user', JSON.stringify(userData));
+      // ទាញយកព័ត៌មានអ្នកប្រើប្រាស់ (កែតម្រូវ: ប្រើ try/catch)
+      try {
+        const userData = await api.get('/auth/me');
+        localStorage.setItem('user', JSON.stringify(userData));
+      } catch (userError) {
+        console.warn('⚠️ Could not fetch user data, but login successful:', userError);
+        // បើមិនអាចទាញ user បាន ក៏អាច Login បានដែរ
+      }
       
       toast.success('Google Login ជោគជ័យ!');
       

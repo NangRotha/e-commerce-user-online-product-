@@ -2,7 +2,6 @@
 import axios from 'axios';
 
 // ===== កំណត់ API URL ពី Environment Variable =====
-// ប្រើ import.meta.env.VITE_API_URL ឬ Fallback URL
 // សំខាន់៖ ប្តូរ Fallback URL ទៅ Backend ដែលបាន Deploy
 const API_URL = import.meta.env.VITE_API_URL || 'https://e-commerce-backend-online-product.onrender.com/api';
 
