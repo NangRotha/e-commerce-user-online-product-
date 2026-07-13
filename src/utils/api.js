@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 // ===== កំណត់ API URL ពី Environment Variable =====
-// សំខាន់៖ ប្តូរ Fallback URL ទៅ Backend ដែលបាន Deploy
+// src/utils/api.js
 const API_URL = import.meta.env.VITE_API_URL || 'https://e-commerce-backend-online-product.onrender.com/api';
 
 console.log('🔗 API URL:', API_URL);
@@ -23,6 +23,10 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
       console.log('🔑 Token attached to request');
     }
+    // សំខាន់៖ លុប Content-Type នៅពេលផ្ញើ FormData
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
     return config;
   },
   (error) => {
@@ -34,29 +38,30 @@ api.interceptors.request.use(
 // ===== Response Interceptor: គ្រប់គ្រង Error និង Response =====
 api.interceptors.response.use(
   (response) => {
-    // ប្រសិនបើ Response ជោគជ័យ ត្រឡប់ Data
     return response.data;
   },
   (error) => {
     console.error('❌ Response error:', error);
     
-    // ប្រសិនបើ Token ផុតកំណត់ (401) ចេញពីប្រព័ន្ធ
     if (error.response?.status === 401) {
       console.warn('⚠️ Token expired or invalid');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      
-      // បញ្ជូនទៅ Login ប្រសិនបើមិនទាន់នៅ Login
       if (!window.location.pathname.includes('/login')) {
         window.location.href = '/login';
       }
     }
     
-    // ទាញយកសារ Error ពី Backend
-    const errorMessage = error.response?.data?.detail || 
-                         error.response?.data?.message ||
-                         error.message ||
-                         'Something went wrong';
+    let errorMessage = 'Something went wrong';
+    if (error.response?.data?.detail) {
+      if (typeof error.response.data.detail === 'string') {
+        errorMessage = error.response.data.detail;
+      } else if (Array.isArray(error.response.data.detail)) {
+        errorMessage = error.response.data.detail.map(err => err.msg).join(', ');
+      }
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
     
     return Promise.reject(errorMessage);
   }

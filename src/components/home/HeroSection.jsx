@@ -91,7 +91,7 @@ const HeroSection = () => {
               </div>
 
               <h1 className="text-4xl md:text-6xl font-bold text-white mb-5 leading-tight drop-shadow-lg">
-                កាស <br />
+                ទិញជាមួយនិងទំនុកចិត្ត<br />
                 <span className="text-yellow-400">គុណភាពខ្ពស់</span>
               </h1>
               

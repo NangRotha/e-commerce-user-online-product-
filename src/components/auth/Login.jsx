@@ -15,7 +15,7 @@ const Login = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth(); // លុប loginWithGoogle ចេញ ព្រោះមិនបានប្រើ
+  const { login } = useAuth(); 
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -40,7 +40,7 @@ const Login = () => {
     try {
       console.log("Google credential received");
       
-      // ផ្ញើ Google Token ទៅ Backend
+      // === ផ្ញើ JSON Body ជាមួយ { token: ... } ===
       const response = await api.post('/auth/google/callback', {
         token: credentialResponse.credential
       });
@@ -51,13 +51,12 @@ const Login = () => {
       const { access_token } = response;
       localStorage.setItem('token', access_token);
       
-      // ទាញយកព័ត៌មានអ្នកប្រើប្រាស់ (កែតម្រូវ: ប្រើ try/catch)
+      // ទាញយកព័ត៌មានអ្នកប្រើប្រាស់ (ប្រើ try/catch)
       try {
         const userData = await api.get('/auth/me');
         localStorage.setItem('user', JSON.stringify(userData));
       } catch (userError) {
         console.warn('⚠️ Could not fetch user data, but login successful:', userError);
-        // បើមិនអាចទាញ user បាន ក៏អាច Login បានដែរ
       }
       
       toast.success('Google Login ជោគជ័យ!');
@@ -67,7 +66,9 @@ const Login = () => {
       
     } catch (error) {
       console.error('Google Login Error:', error);
-      toast.error(error || 'Google Login បរាជ័យ');
+      // === ធានាថា error គឺជា String ===
+      const errorMessage = typeof error === 'string' ? error : (error?.message || 'Google Login បរាជ័យ');
+      toast.error(errorMessage);
     }
   };
 

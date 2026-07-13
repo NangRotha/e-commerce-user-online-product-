@@ -22,7 +22,7 @@ export const SettingsProvider = ({ children }) => {
   const fetchSettings = async () => {
     try {
       // ===== កែតម្រូវនៅទីនេះ! លុប '/public' ចេញ =====
-      const data = await api.get('/admin/settings');
+      const data = await api.get('/admin/settings/public');
       setSettings(data);
     } catch (error) {
       console.error('Error fetching settings:', error);
