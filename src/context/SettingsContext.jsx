@@ -21,7 +21,7 @@ export const SettingsProvider = ({ children }) => {
 
   const fetchSettings = async () => {
     try {
-      // ===== កែតម្រូវនៅទីនេះ! លុប '/public' ចេញ =====
+      // ✅ កែតម្រូវ៖ ហៅ API Public ដែលមិនត្រូវការ Token
       const data = await api.get('/admin/settings/public');
       setSettings(data);
     } catch (error) {
